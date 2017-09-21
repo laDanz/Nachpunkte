@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'NaschpunkteApp',
 ]
 
-MIDDLEWARE = [
+MIDDLEWARE_CLASSES = [
     'google.appengine.ext.ndb.django_middleware.NdbDjangoMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
