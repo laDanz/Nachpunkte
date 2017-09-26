@@ -17,6 +17,6 @@ def index(request):
     
 def list_activities(request):
     context = {}
-    rewards = ActivityEntity.query()
-    context["rewards"] = rewards
+    activities = ActivityEntity.query()
+    context["activities"] = activities
     return render_to_response('entities/listActivities.html', context, context_instance=RequestContext(request))
