@@ -21,4 +21,5 @@ import NaschpunkteApp.views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', NaschpunkteApp.views.index),
+    url(r'^lsa/$', NaschpunkteApp.views.list_activities),
 ]

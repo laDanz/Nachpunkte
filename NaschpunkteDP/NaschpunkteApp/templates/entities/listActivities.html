@@ -1,0 +1,18 @@
+<html>
+	<body>
+		
+		<div>
+		
+			<table>
+				<tr><th>Activity</th><th>Points</th></tr>
+				{% for activity in activities %}
+					<tr>
+						<td>{{ activity.name }}</td>
+						<td>{{ activity.punkte }}</td>
+					</tr>
+				{% endfor %}
+		
+		</div>
+
+	</body>
+</html>
