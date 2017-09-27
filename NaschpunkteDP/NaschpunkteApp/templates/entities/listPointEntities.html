@@ -1,0 +1,25 @@
+<html>
+	<body>
+		
+		<div>
+		
+			<table>
+				<thead>
+					<tr><th>Activity</th><th>Points</th><th>default Value</th><th>Unit</th><th>created</th></tr>
+				</thead>
+				<tbody>
+				{% for activity in activities %}
+					<tr>
+						<td>{{ activity.name }}</td>
+						<td>{{ activity.punkte }}</td>
+						<td>{{ activity.defaultValue }}</td>
+						<td>{{ activity.einheit }}</td>
+						<td>{{ activity.created|date }}</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+
+	</body>
+</html>

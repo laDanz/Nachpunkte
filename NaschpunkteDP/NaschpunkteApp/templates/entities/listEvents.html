@@ -1,0 +1,24 @@
+<html>
+	<body>
+		
+		<div>
+		
+			<table>
+				<thead>
+					<tr><th>Event</th><th>Date</th><th>value</th><th>Points</th></tr>
+				</thead>
+				<tbody>
+				{% for e in events %}
+					<tr>
+						<td>{{ e.pointEntity.name }}</td>
+						<td>{{ e.created|date }}</td>
+						<td>{{ e.value }}</td>
+						<td>{{ e.value * e.pointEntity.punkte }}</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+
+	</body>
+</html>
