@@ -1,14 +1,14 @@
 <html>
 	<body>
 		
-		<form>
-			
+		<form method="post">
+			{% csrf_token %}
 			<select name="pointEntity">
 				{% for e in entities %}
-					<option value="{{ e.key.identifier }}">{{ e.name }} ({{ e.punkte }} Punkte / {{ e.defaultValue }} {{ e.einheit }})</option>
+					<option value="{{ e.key.id }}">{{ e.name }} ({{ e.punkte }} Punkte / {{ e.defaultValue }} {{ e.einheit }})</option>
 				{% endfor %}
 			</select>
-			<input name="value" value="{{ e.defaultValue }}">
+			<input type="number" name="value" value="{{ e.defaultValue }}">
 			
 			<input type="submit" value="Speichern" />	
 		</form>

@@ -24,4 +24,5 @@ urlpatterns = [
     url(r'^lsa/$', NaschpunkteApp.views.list_activities),
     url(r'^lsn/$', NaschpunkteApp.views.list_naschies),
     url(r'^cre/$', NaschpunkteApp.views.create_event),
+    url(r'^lse/$', NaschpunkteApp.views.list_events),
 ]
