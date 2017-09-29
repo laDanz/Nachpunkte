@@ -53,4 +53,4 @@ def create_event(request):
                     params={'value': request.POST["value"]},
            )
         e.put()
-        redirect("/lse/")
+        return redirect("/lse/")
