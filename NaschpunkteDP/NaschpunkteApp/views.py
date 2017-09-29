@@ -43,7 +43,8 @@ def create_event(request):
         return render_to_response('entities/createEvent.html', context, context_instance=RequestContext(request))
     elif request.method == 'POST':
         e = EventEntity()
-        e.pointEntity = ndb.Key("PointEntity", request.POST["pointEntity"])
+        #e.pointEntity = ndb.Key("PointEntity", request.POST["pointEntity"])
+        e.pointEntity = ndb.Key(urlsafe=request.POST["pointEntity"])
         try:
             e.value = float(request.POST["value"])
         except ValueError:

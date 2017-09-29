@@ -20,7 +20,7 @@ class NaschEntity(PointEntity):
     pass
 
 class EventEntity(ndb.Model):
-    pointEntity = ndb.KeyProperty(kind=PointEntity)
+    pointEntity = ndb.KeyProperty()
     value = ndb.FloatProperty()
     created = ndb.DateTimeProperty(auto_now_add=True)
     @property
@@ -28,9 +28,4 @@ class EventEntity(ndb.Model):
         return self.value * self.p.punkte / self.p.defaultValue
     @property
     def p(self):
-        p = self.pointEntity.get()
-        if p is None:
-            p = ndb.Key(ActivityEntity, self.pointEntity.id).get()
-        if p is None:
-            p = ndb.Key(NaschEntity, self.pointEntity.id).get()
-        return p
+        return self.pointEntity.get()
