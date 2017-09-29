@@ -4,10 +4,12 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
+from django.core.exceptions import ValidationError
+import md5
 
 from google.appengine.ext import ndb
 
-from NaschpunkteApp.models import ActivityEntity, NaschEntity, PointEntity, EventEntity
+from NaschpunkteApp.models import ActivityEntity, NaschEntity, PointEntity, EventEntity, UserEntity
 
 def index(request):
     a = NaschEntity()
@@ -54,3 +56,29 @@ def create_event(request):
            )
         e.put()
         return redirect("/lse/")
+
+def create_user(request):
+    if request.method == 'GET':
+        context = {}
+        return render_to_response('user/createUser.html', context, context_instance=RequestContext(request))
+    elif request.method == 'POST':
+        u = UserEntity()
+        u.username = request.POST["username"]
+	u.secret = md5.new(request.POST["password"]).hexdigest()
+        u.put()
+	request.session['user_id'] = u.key.urlsafe()
+        return redirect("/")
+
+def login_user(request):
+    if request.method == 'GET':
+        context = {}
+        return render_to_response('user/login.html', context, context_instance=RequestContext(request))
+    elif request.method == 'POST':
+        u = UserEntity.query(UserEntity.username==request.POST["username"]).get()
+	if u is None:
+		raise ValidationError('Unbekannter Nutzer!')
+	if u.secret != md5.new(request.POST["password"]).hexdigest():
+		raise ValidationError('Falsches Passwort!')
+        #user is successfully authenticated at this point
+	request.session['user_id'] = u.key.urlsafe()
+        return redirect("/")

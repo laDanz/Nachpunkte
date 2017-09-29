@@ -19,7 +19,12 @@ class ActivityEntity(PointEntity):
 class NaschEntity(PointEntity):
     pass
 
+class UserEntity(ndb.Model):
+	username = ndb.StringProperty()
+	secret = ndb.StringProperty()
+
 class EventEntity(ndb.Model):
+    userEntity = ndb.KeyProperty(kind=UserEntity)
     pointEntity = ndb.KeyProperty()
     value = ndb.FloatProperty()
     created = ndb.DateTimeProperty(auto_now_add=True)
