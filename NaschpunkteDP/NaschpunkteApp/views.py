@@ -12,11 +12,11 @@ from google.appengine.ext import ndb
 from NaschpunkteApp.models import ActivityEntity, NaschEntity, PointEntity, EventEntity, UserEntity
 
 def index(request):
-    a = NaschEntity()
-    a.name="Test"
-    a.put()
-    return HttpResponse(
-        'Hello, World. This is Django running on Google App Engine')
+    context = {}
+    user = ndb.Key(urlsafe=request.session['user_id']).get()
+    if user is None:
+        return redirect("/login/")
+    return redirect("/lse/")
     
 def list_activities(request):
     context = {}
