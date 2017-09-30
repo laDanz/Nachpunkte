@@ -28,4 +28,5 @@ urlpatterns = [
     url(r'^cru/$', NaschpunkteApp.views.create_user),
     url(r'^login/$', NaschpunkteApp.views.login_user),
     url(r'^logout/$', NaschpunkteApp.views.logout_user),
+    url(r'^rest/', NaschpunkteApp.views.rest),
 ]
