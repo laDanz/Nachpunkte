@@ -5,17 +5,30 @@ from django.http import HttpResponse
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.core.exceptions import ValidationError
+from datetime import datetime, timedelta
+from functools import wraps
 import md5
 
 from google.appengine.ext import ndb
 
 from NaschpunkteApp.models import ActivityEntity, NaschEntity, PointEntity, EventEntity, UserEntity
 
+def user_authenticated(func):
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        request = args[0]
+        try:
+            user = ndb.Key(urlsafe=request.session['user_id']).get()
+            if user is None:
+                return redirect("/login/")
+        except KeyError:
+            return redirect("/login/")
+        #everthing passed, call the function
+        return func(*args, **kwargs)
+    return wrapped
+
+@user_authenticated
 def index(request):
-    context = {}
-    user = ndb.Key(urlsafe=request.session['user_id']).get()
-    if user is None:
-        return redirect("/login/")
     return redirect("/lse/")
     
 def list_activities(request):
@@ -30,12 +43,16 @@ def list_naschies(request):
     context["activities"] = naschies
     return render_to_response('entities/listPointEntities.html', context, context_instance=RequestContext(request))
 
+@user_authenticated
 def list_events(request):
     context = {}
-    events = EventEntity.query()
+    now=datetime.now().replace(hour=0,minute=0,second=0,microsecond=0)
+    beginOfWeek = now - timedelta(days=now.weekday())
+    events = EventEntity.query(EventEntity.created > beginOfWeek, EventEntity.userEntity == ndb.Key(urlsafe=request.session['user_id']))
     context["events"] = events
     return render_to_response('entities/listEventEntities.html', context, context_instance=RequestContext(request))
 
+@user_authenticated
 def create_event(request):
     if request.method == 'GET':
         context = {}
@@ -45,7 +62,7 @@ def create_event(request):
         return render_to_response('entities/createEvent.html', context, context_instance=RequestContext(request))
     elif request.method == 'POST':
         e = EventEntity()
-        #e.pointEntity = ndb.Key("PointEntity", request.POST["pointEntity"])
+        e.userEntity = ndb.Key(urlsafe=request.session['user_id'])
         e.pointEntity = ndb.Key(urlsafe=request.POST["pointEntity"])
         try:
             e.value = float(request.POST["value"])
@@ -62,7 +79,7 @@ def create_user(request):
         context = {}
         return render_to_response('user/createUser.html', context, context_instance=RequestContext(request))
     elif request.method == 'POST':
-        u = UserEntity()
+        u = ndb.Key(urlsafe=request.session['user_id'])
         u.username = request.POST["username"]
 	u.secret = md5.new(request.POST["password"]).hexdigest()
         u.put()
@@ -82,3 +99,7 @@ def login_user(request):
         #user is successfully authenticated at this point
 	request.session['user_id'] = u.key.urlsafe()
         return redirect("/")
+
+def logout_user(request):
+    del request.session['user_id']
+    return redirect("/")
