@@ -33,11 +33,18 @@ def user_authenticated_or_401(func):
     @wraps(func)
     def wrapped(*args, **kwargs):
         request = args[0]
+        user_id = None
         try:
-            user = ndb.Key(urlsafe=request.session['user_id']).get()
-            if user is None:
-                return HttpResponse('Unauthorized', status=401)
+            user_id = request.session['user_id']
         except KeyError:
+            try:
+                user_id = request.GET['user_id']
+            except KeyError:
+                pass
+        if user_id is None:
+            return HttpResponse('Unauthorized', status=401)
+        user = ndb.Key(urlsafe=user_id).get()
+        if user is None:
             return HttpResponse('Unauthorized', status=401)
         #everthing passed, call the function
         return func(*args, **kwargs)
@@ -112,6 +119,19 @@ def login_user(request):
             return HttpResponse(csrf.get_token(request))
         return render_to_response('user/login.html', context, context_instance=RequestContext(request))
     elif request.method == 'POST':
+        media_type='text/html'
+        if request.META.has_key('CONTENT_TYPE'):
+            media_type = request.META['CONTENT_TYPE'].split(';')[0]
+        if media_type.lower() == 'application/json':
+            body = json.loads(request.body)
+            u = UserEntity.query(UserEntity.username==body["username"]).get()
+            if u is None:
+                raise ValidationError('Unbekannter Nutzer!')
+            if u.secret != md5.new(body["password"]).hexdigest():
+                raise ValidationError('Falsches Passwort!')
+            res = HttpResponse("""{ "ResponseCode": "Success"}""", content_type="application/json; charset=UTF-8")
+            res['user_id'] = u.key.urlsafe()
+            return res
         u = UserEntity.query(UserEntity.username==request.POST["username"]).get()
 	if u is None:
 		raise ValidationError('Unbekannter Nutzer!')
@@ -127,8 +147,16 @@ def logout_user(request):
 
 @user_authenticated_or_401
 def rest(request):
+	user_id = None
+	try:
+		user_id = request.GET["user_id"]
+	except KeyError:
+		try:
+			user_id = request.session['user_id']
+		except KeyError:
+			pass
 	if "lsp" in request.path:
-		events = EventEntity.query(EventEntity.created > getBeginOfWeek(), EventEntity.userEntity == ndb.Key(urlsafe=request.session['user_id'])).fetch()
+		events = EventEntity.query(EventEntity.created > getBeginOfWeek(), EventEntity.userEntity == ndb.Key(urlsafe=user_id)).fetch()
 		punkteSum = int(reduce(lambda x,y: x+y, map(lambda e:e.punkte, events)))
 		return HttpResponse(str(punkteSum))
 	if "lsa" in request.path:
