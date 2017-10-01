@@ -145,6 +145,11 @@ def logout_user(request):
     del request.session['user_id']
     return redirect("/")
 
+def json_serial(obj):
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    raise TypeError ("Type %s not serializable" % type(obj))
+
 @user_authenticated_or_401
 def rest(request):
 	user_id = None
@@ -161,7 +166,7 @@ def rest(request):
 		return HttpResponse(str(punkteSum))
 	if "lsa" in request.path:
 		activities = ActivityEntity.query().fetch()
-		return HttpResponse(json.dumps(activities))
+		return HttpResponse(json.dumps([a.to_dict() for a in activities], default=json_serial))
 	if "lsn" in request.path:
 		naschies = NaschEntity.query().fetch()
 		return HttpResponse(json.dumps(naschies))
