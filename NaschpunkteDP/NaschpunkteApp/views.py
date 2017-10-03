@@ -7,7 +7,7 @@ from django.template import RequestContext
 from django.core.exceptions import ValidationError
 from django.middleware import csrf
 from django.views.decorators.csrf import csrf_exempt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from functools import wraps
 import md5, json
 
@@ -40,7 +40,10 @@ def user_authenticated_or_401(func):
             try:
                 user_id = request.GET['user_id']
             except KeyError:
-                pass
+                try:
+                    user_id = request.POST['user_id']
+                except KeyError:
+                    pass
         if user_id is None:
             return HttpResponse('Unauthorized', status=401)
         user = ndb.Key(urlsafe=user_id).get()
@@ -150,6 +153,15 @@ def json_serial(obj):
         return obj.isoformat()
     raise TypeError ("Type %s not serializable" % type(obj))
 
+def toList(entities):
+    res = []
+    for a in entities:
+        d = a.to_dict()
+        d["urlsafe"] = a.key.urlsafe()
+        res.append(d)
+    return res	
+
+@csrf_exempt
 @user_authenticated_or_401
 def rest(request):
 	user_id = None
@@ -157,17 +169,32 @@ def rest(request):
 		user_id = request.GET["user_id"]
 	except KeyError:
 		try:
-			user_id = request.session['user_id']
+			user_id = request.POST["user_id"]
 		except KeyError:
-			pass
+			try:
+				user_id = request.session['user_id']
+			except KeyError:
+				pass
 	if "lsp" in request.path:
 		events = EventEntity.query(EventEntity.created > getBeginOfWeek(), EventEntity.userEntity == ndb.Key(urlsafe=user_id)).fetch()
-		punkteSum = int(reduce(lambda x,y: x+y, map(lambda e:e.punkte, events)))
+		punkteSum = 0
+		if len(events)>0:
+			punkteSum = int(reduce(lambda x,y: x+y, map(lambda e:e.punkte, events)))
 		return HttpResponse(str(punkteSum))
 	if "lsa" in request.path:
 		activities = ActivityEntity.query().fetch()
-		return HttpResponse(json.dumps([a.to_dict() for a in activities], default=json_serial))
+		return HttpResponse(json.dumps(toList(activities), default=json_serial))
 	if "lsn" in request.path:
 		naschies = NaschEntity.query().fetch()
-		return HttpResponse(json.dumps(naschies))
+		return HttpResponse(json.dumps(toList(naschies), default=json_serial))
+	if "cre" in request.path:
+		e = EventEntity()
+		e.userEntity = ndb.Key(urlsafe=request.POST['user_id'])
+		e.pointEntity = ndb.Key(urlsafe=request.POST['event'])
+		try:
+			e.value = float(request.POST["value"])
+		except ValueError:
+			HttpResponse('Bad value', status=500)
+		e.put()
+		return HttpResponse(status=200)		
 	return HttpResponse('Not Found', status=404)	
