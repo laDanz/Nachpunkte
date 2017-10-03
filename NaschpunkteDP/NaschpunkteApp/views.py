@@ -107,7 +107,7 @@ def create_user(request):
         context = {}
         return render_to_response('user/createUser.html', context, context_instance=RequestContext(request))
     elif request.method == 'POST':
-        u = ndb.Key(urlsafe=request.session['user_id'])
+        u = UserEntity()
         u.username = request.POST["username"]
 	u.secret = md5.new(request.POST["password"]).hexdigest()
         u.put()
