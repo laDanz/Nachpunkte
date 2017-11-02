@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE_CLASSES = [
     'google.appengine.ext.ndb.django_middleware.NdbDjangoMiddleware',
+    'NaschpunkteApp.django-crossdomainxhr-middleware.XsSharing',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
